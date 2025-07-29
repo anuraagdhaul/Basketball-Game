@@ -81,8 +81,8 @@ def draw():
     #screen.draw.filled_rect(righthoopbackboard, (0,0,0))
 
     # Draw scores and timer
-    screen.draw.text(f"P1 Score: {score_p1}", midtop=(200, 10), fontsize=30, color="black")
-    screen.draw.text(f"AI Score: {score_p2}", midtop=(760, 10), fontsize=30, color="black")
+    screen.draw.text(f"P1 Score: {score_p1}", midtop=(200, 30), fontsize=30, color="black")
+    screen.draw.text(f"AI Score: {score_p2}", midtop=(760, 30), fontsize=30, color="black")
     screen.draw.text(f"Timer: {timer}", center=(WIDTH//2, 40), fontsize=40, color="black")
 
     # Draw prediction bar if timer active

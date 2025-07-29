@@ -2,7 +2,10 @@
 import pygame
 import random
 import pgzrun
-#from MainG import 
+import Games
+import subprocess
+import sys
+from SpeedShot import *
 
 WIDTH = 960
 HEIGHT = 600
@@ -22,23 +25,29 @@ timer = 90
 timer_on = False
 games_submenu = False
 
+# Prediction UI
+prediction_chance = 0.0
+prediction_color = "gray"
+prediction_timer = 0
+
 
 def challengeaction():
     global counter
     counter = True
+ 
+def start_game():
+    subprocess.Popen(["pgzrun", "Games.py"])
 
 
-challengebutton = Rect((130, 250), (200, 60))
-customizebutton = Rect((130, 390), (200, 60))
-gamesbutton = Rect((360, 250), (200, 60))
-rankingbutton = Rect((360, 455), (200, 45))
-pointsbutton = Rect((360, 390), (200, 50))
-accountbutton = Rect((780, 40), (140, 50))
-tutorialbutton = Rect((40, 40), (140, 50))
+challengebutton = Rect((380, 250), (200, 60))
+gamesbutton = Rect((380, 340), (200, 60))
+rankingbutton = Rect((380, 430), (200, 60))
+pointsbutton = Rect((380, 520), (200, 50))
+tutorialbutton = Rect((780, 40), (140, 50))
+homebutton = Rect((40, 40), (140, 50))
 righthoop = Rect((800, 270), (70, 15))
 righthoopbackboard = Rect((800, 290), (70, 40))
 speedshotscore = 0
-
 
 
 speedshotbutton = Rect((170, 220), (250, 140))
@@ -65,10 +74,6 @@ def draw():
         screen.draw.filled_rect(challengebutton, "#fdd76e")
         screen.draw.text("Challenges", center=challengebutton.center, color="black", fontsize=28)
 
-        # Customize button
-        screen.draw.filled_rect(customizebutton, "#fdb8b2")
-        screen.draw.text("Customize", center=customizebutton.center, color="black", fontsize=28)
-
         # Games button
         screen.draw.filled_rect(gamesbutton, "#a5cdff")
         screen.draw.text("Games", center=gamesbutton.center, color="black", fontsize=28)
@@ -80,10 +85,6 @@ def draw():
         # Points button
         screen.draw.filled_rect(pointsbutton, "#b7e3a0")
         screen.draw.text("Points", center=pointsbutton.center, color="black", fontsize=28)
-
-        # Account button
-        screen.draw.filled_rect(accountbutton, "#baf3f7")
-        screen.draw.text("Account", center=accountbutton.center, color="black", fontsize = 28)
 
         # Tutorial button
         screen.draw.filled_rect(tutorialbutton, "#baf3f7")
@@ -100,6 +101,9 @@ def draw():
         screen.draw.text("Speed Shot\n\nMake 30 baskets in 90 seconds", center=speedshotbutton.center, color="white")
         #screen.draw.text(, center = (200, 150), fontsize = 30, color="white")
 
+        # Home button
+        screen.draw.filled_rect(homebutton, "#baf3f7")
+        screen.draw.text("Home", center=homebutton.center, color="black", fontsize = 28)
 
         screen.draw.filled_rect(fastfootworkbutton, "#960019")
         screen.draw.text("Fast Footwork", center=fastfootworkbutton.center, color="white")
@@ -114,11 +118,31 @@ def draw():
 
 
     if counter == "Speed Shot":
-        player.draw()
-        ball.draw()
-        screen.draw.filled_rect(righthoop, (0, 0, 0))
-        screen.draw.text("Score: " + str(speedshotscore), center=(WIDTH // 2, 130), color="black", fontsize=40)
-        screen.draw.text("Timer: " + str(timer), center = (WIDTH // 2, 170), color="black", fontsize=40)
+        speedshotdraw(screen)
+
+    #if counter == "Fast Footwork":
+      #  player.draw()
+       # ball.draw()
+       # screen.draw.filled_rect(rigthhoop, (0, 0, 0))
+        #screen.draw.text("Score: " + str)
+
+
+        # Draw prediction bar if timer active
+        if prediction_timer > 0:
+            bar_width = 300
+            bar_height = 20
+            bar_x = WIDTH // 2 - bar_width // 2
+            bar_y = 100
+            fill_width = int(bar_width * prediction_chance)
+            screen.draw.text("Shot Accuracy", center=(WIDTH // 2, bar_y - 25), fontsize=30, color="black")
+            screen.draw.filled_rect(Rect((bar_x, bar_y), (bar_width, bar_height)), "gray")
+            screen.draw.filled_rect(Rect((bar_x, bar_y), (fill_width, bar_height)), prediction_color)
+            screen.draw.rect(Rect((bar_x, bar_y), (bar_width, bar_height)), "black")
+
+    if counter == "Home":
+        counter = False
+
+    
 
    
 # for all collisions
@@ -133,16 +157,25 @@ def on_mouse_down(pos):
         timer_on = True
     if gamesbutton.collidepoint(pos):
         counter = "Games"
+        start_game()
+        sys.exit()
+    if homebutton.collidepoint(pos):
+        counter = "Home"
+    if fastfootworkbutton.collidepoint(pos):
+        counter = "Fast Footwork"
 
 
 def on_key_down(key):
-    global ballcounter
+    global ballcounter, prediction_chance, prediction_color, prediction_timer
     global ballx
     global bally
     if key == keys.SPACE and ballcounter == False:
         ballx = random.uniform(6, 9)
         bally = random.uniform(-10, -13)
         ballcounter = True
+
+         # Predict shot success based on simple angle
+        
 
 def resetball():
     global ballcounter
@@ -164,35 +197,5 @@ def update():
         if timer_on == True:
             startspeedshot()
             timer_on = False
-        if keyboard.up:
-            player.y -= 3
-        if keyboard.down:
-            player.y += 3
-        if keyboard.left:
-            player.x -= 3
-        if keyboard.right:
-            player.x += 3
-        if ballcounter == False:
-            ball.x = player.x - 6
-            ball.y = player.y
-        if ballcounter == True:
-            ball.x += ballx
-            ball.y += bally
-            bally += gravity
-            if ball.colliderect(righthoop):
-                speedshotscore += 1
-                resetball()
-            if ball.y > HEIGHT or ball.x > WIDTH:
-                resetball()
-
-
-        if player.bottom < 406:
-            player.bottom = 406
-        if player.bottom > HEIGHT:
-            player.bottom = HEIGHT
-        if player.left < 100:
-            player.left = 100
-        if player.right > 860:
-            player.right = 860
-
+        updatespeedshot(keyboard, screen)
 pgzrun.go()
