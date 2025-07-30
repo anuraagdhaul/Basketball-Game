@@ -264,7 +264,7 @@ def on_key_down(key):
             prediction_color = "yellow"
         else:
             prediction_color = "red"
-        prediction_timer = 60
+        prediction_timer = 60 
 
 def shoot_ai():
     global ball_in_motion, ballx, bally, ball_owner
