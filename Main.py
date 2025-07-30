@@ -43,6 +43,15 @@ games_submenu = False
 points = 0
 points_log = []
 
+player_name = ""
+input_active = True
+input_text = ""
+
+rankings = {
+    "Speed Shot": [],
+    "Fast Footwork": []
+}
+
 
 def challengeaction():
     global counter
@@ -62,11 +71,12 @@ speedshotscore = 0
 
 
 
-speedshotbutton = Rect((170, 220), (250, 140))
-fastfootworkbutton = Rect((540, 220), (250, 140))
-dogbutton = Rect((360, 420), (250, 140))
+speedshotbutton = Rect((130, 240), (300, 210))
+fastfootworkbutton = Rect((530, 240), (300, 210))
 
 def start_fastfootwork():
+    if hasattr(draw, "fastfootwork_ranked"):
+        del draw.fastfootwork_ranked
     global timer, fastfootwork_score, fastfootwork_circle
     reset_game_state()
     timer = 90
@@ -132,6 +142,15 @@ state = {
 }
 
 def draw():
+    global input_active, input_text, player_name
+    if input_active:
+        screen.clear()
+        screen.fill((249, 246, 232))
+        screen.draw.text("Enter your name:", center=(WIDTH//2, HEIGHT//2-40), fontsize=48, color="black")
+        screen.draw.filled_rect(Rect((WIDTH//2-150, HEIGHT//2), (300, 50)), "#ffffff")
+        screen.draw.text(input_text, center=(WIDTH//2, HEIGHT//2+25), fontsize=36, color="black")
+        return
+
     global counter, speedshotscore, button_pressed, timer_on, points, points_log
     screen.clear()
     screen.fill((249, 246, 232))
@@ -149,7 +168,31 @@ def draw():
             y += 40
         # Back button
         screen.draw.filled_rect(homebutton, "#baf3f7")
-        screen.draw.text("Back", center=homebutton.center, color="black", fontsize=28)
+        screen.draw.text("Home", center=homebutton.center, color="black", fontsize=28)
+        return
+
+    if counter == "Ranking":
+        screen.clear()
+        screen.fill((249, 246, 232))
+        screen.draw.text("Rankings", center=(WIDTH//2, 60), color="black", fontsize=48)
+        y = 120
+        for mode in rankings:
+            screen.draw.text(f"{mode}:", topleft=(100, y), color="black", fontsize=36)
+            y += 40
+            # Header row
+            screen.draw.text("Rank", topleft=(120, y), color="gray", fontsize=28)
+            screen.draw.text("Player Name", topleft=(200, y), color="gray", fontsize=28)
+            screen.draw.text("Total Score", topleft=(500, y), color="gray", fontsize=28)
+            y += 32
+            for i, (name, score) in enumerate(rankings[mode][:5], 1):  # Top 5
+                screen.draw.text(f"{i}", topleft=(120, y), color="black", fontsize=28)
+                screen.draw.text(f"{name}", topleft=(200, y), color="black", fontsize=28)
+                screen.draw.text(f"{score}", topleft=(500, y), color="black", fontsize=28)
+                y += 32
+            y += 20
+        # Back button
+        screen.draw.filled_rect(homebutton, "#baf3f7")
+        screen.draw.text("Home", center=homebutton.center, color="black", fontsize=28)
         return
 
     # -------------- Buttons --------------
@@ -192,20 +235,20 @@ def draw():
 
     if  counter == True:
         screen.draw.filled_rect(speedshotbutton, "#990F02")
-        screen.draw.text("Speed Shot\n\nMake 30 baskets in 90 seconds", center=speedshotbutton.center, color="white")
-        #screen.draw.text(, center = (200, 150), fontsize = 30, color="white")
+        screen.draw.text("Speed Shot", center=(280, 290), color="white", fontsize = 40)
+        screen.draw.text("Make 30 baskets in 90 seconds", center=(280, 350), color="white")
+        screen.draw.text("Earn 50 points upon completion!", center=(280, 380), color="white")
 
         # Home button
         screen.draw.filled_rect(homebutton, "#baf3f7")
         screen.draw.text("Home", center=homebutton.center, color="black", fontsize = 28)  
 
-        screen.draw.filled_rect(fastfootworkbutton, "#960019")
-        screen.draw.text("Fast Footwork", center=fastfootworkbutton.center, color="white")
+        screen.draw.filled_rect(fastfootworkbutton, "#151562")
+        screen.draw.text("Fast Footwork", center=(685, 290), color="white", fontsize = 40)
+        screen.draw.text("Tag as many spots in 70 seconds", center=(685, 350), color="white")
+        screen.draw.text("Earn 2 points for every spot you tag!", center=(685, 380), color="white")
 
-        screen.draw.filled_rect(dogbutton, "#960019")
-        screen.draw.text("D.O.G", center=dogbutton.center, color="white")
-
-        screen.draw.text("Choose a challenge and try to earn some points!", center=(WIDTH // 2, 130), color="black", fontsize=40)
+        screen.draw.text("Choose a challenge and try to earn some points!", center=(WIDTH // 2, 150), color="black", fontsize=40)
 
     if counter == "Speed Shot":
         if prediction_timer > 0:
@@ -230,6 +273,14 @@ def draw():
                     points += 40
                     points_log.append("Speed Shot: 40")
                     draw.speed_shot_logged = True
+                    # Speed Shot
+                    if counter == "Speed Shot":
+                        if timer == 0:
+                            # ...existing code...
+                            if not hasattr(draw, "speed_shot_ranked"):
+                                rankings["Speed Shot"].append((player_name, speedshotscore))
+                                rankings["Speed Shot"].sort(key=lambda x: x[1], reverse=True)
+                                draw.speed_shot_ranked = True
             else:
                 screen.draw.text("Challenge Failed.", center=(WIDTH//2, HEIGHT//2), fontsize=60, color="red")
                 # Draw Try Again button
@@ -246,6 +297,14 @@ def draw():
                 if fastfootwork_score > 0:
                     points_log.append(f"Fast Footwork: {fastfootwork_score * 2}")
                 draw.fastfootwork_logged = True
+                # Fast Footwork
+                if counter == "Fast Footwork":
+                    if timer == 0:
+                        # ...existing code...
+                        if not hasattr(draw, "fastfootwork_ranked"):
+                            rankings["Fast Footwork"].append((player_name, fastfootwork_score * 2))
+                            rankings["Fast Footwork"].sort(key=lambda x: x[1], reverse=True)
+                            draw.fastfootwork_ranked = True
             # Home button
             screen.draw.filled_rect(homebutton, "#baf3f7")
             screen.draw.text("Home", center=homebutton.center, color="black", fontsize=28)
@@ -299,8 +358,24 @@ def on_mouse_down(pos):
     if homebutton.collidepoint(pos) and counter == "Tutorial":
         counter = False
         return
+    if rankingbutton.collidepoint(pos) and counter == False:
+        counter = "Ranking"
+        return
+    if homebutton.collidepoint(pos) and counter == "Ranking":
+        counter = False
+        return
 
 def on_key_down(key):
+    global input_active, input_text, player_name
+    if input_active:
+        if key.name == "RETURN":
+            player_name = input_text if input_text.strip() else "Player1"
+            input_active = False
+        elif key.name == "BACKSPACE":
+            input_text = input_text[:-1]
+        elif len(key.name) == 1 and len(input_text) < 15:
+            input_text += key.name
+        return
     global ballcounter
     global ballx
     global bally, prediction_chance, prediction_color, prediction_timer
@@ -331,6 +406,8 @@ def decreasetimer():
         timer -= 1
 
 def startspeedshot():
+    if hasattr(draw, "speed_shot_ranked"):
+        del draw.speed_shot_ranked
     clock.unschedule(decreasetimer)  # Stop any previous timer
     clock.schedule_interval(decreasetimer, 1.0)
 
