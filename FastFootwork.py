@@ -1,75 +1,48 @@
-import pygame
 import random
-import pgzrun
-import Games
-import subprocess
-import sys
-from pgzero.builtins import Actor, Rect
 
-WIDTH = 960
-HEIGHT = 600
-counter = False  # keeps track of button click
-player = Actor("player_copy", (480, 550))
-#ai_player = Actor("player_copy", (400, 550))
-button_pressed = False
-timer = 90
-timer_on = False
-games_submenu = False
-righthoop = Rect((800, 270), (70, 15))
-righthoopbackboard = Rect((800, 290), (70, 40))
-speedshotscore = 0
+def start_fastfootwork(state):
+    state['timer'] = 90
+    state['fastfootwork_score'] = 0
+    radius = state['fastfootwork_radius']
+    min_x = 100 + radius
+    max_x = 860 - radius
+    min_y = 406 + radius
+    max_y = state['HEIGHT'] - radius
+    state['fastfootwork_circle'] = (random.randint(min_x, max_x), random.randint(min_y, max_y))
 
-# Hoop challenge setup
-hoop_radius = 30
-initial_hoops = 3
-hoop_pos = []
-visited_hoops = []
-score = 0
-message = ""
-message_timer = 0
+def draw_fastfootwork(screen, player, state, homebutton):
+    x, y = state['fastfootwork_circle']
+    radius = state['fastfootwork_radius']
+    # Draw shadow
+    screen.draw.circle((x, y + 5), radius, (120, 120, 120))
+    # Draw thick blue rim
+    for i in range(4):
+        screen.draw.circle((x, y), radius - i, (30, 144, 255))
+    # Net effect
+    net_height = 12
+    net_color = (220, 220, 220)
+    for i in range(-2, 3):
+        screen.draw.line((x + i*4, y + radius), (x + i*2, y + radius + net_height), net_color)
+    screen.draw.line((x - radius//2, y + radius + net_height//2),
+                     (x + radius//2, y + radius + net_height//2), net_color)
+    player.draw()
+    screen.draw.text(f"Score: {state['fastfootwork_score']}", center=(state['WIDTH'] // 2, 130), color="black", fontsize=40)
+    screen.draw.text(f"Timer: {state['timer']}", center=(state['WIDTH'] // 2, 170), color="black", fontsize=40)
+    screen.draw.filled_rect(homebutton, "#baf3f7")
+    screen.draw.text("Home", center=homebutton.center, color="black", fontsize=28)
 
-def reset_hoops(count):
-    global hoop_pos, visited_hoops
-    hoop_pos = [
-        (random.randint(hoop_radius, WIDTH - hoop_radius),
-         random.randint(hoop_radius, HEIGHT - hoop_radius))
-        for _ in range(count)
-    ]
-    visited_hoops = [False] * count
-
-reset_hoops(initial_hoops)
-
-def fastfootworkdraw(screen):
-    player.draw() 
-    screen.draw.filled_rect(righthoop, (0, 0, 0))
-    # Draw hoops
-    for i, (x, y) in enumerate(hoop_pos):
-        color = "green" if visited_hoops[i] else "red"
-        screen.draw.circle((x, y), hoop_radius, color=color)
-    screen.draw.text("Score: " + str(speedshotscore), center=(WIDTH // 2, 130), color="black", fontsize=40)
-    screen.draw.text("Timer: " + str(timer), center = (WIDTH // 2, 170), color="black", fontsize=40)
-
-def on_key_down(key):
-    print("hi")
-
-def updatefastfootwork(keyboard, screen):
-        global counter, speedshotscore, timer_on
-        if keyboard.up:
-            player.y -= 3
-        if keyboard.down:
-            player.y += 3
-        if keyboard.left:
-            player.x -= 3
-        if keyboard.right:
-            player.x += 3
-
-        if player.bottom < 406:
-            player.bottom = 406
-        if player.bottom > HEIGHT:
-            player.bottom = HEIGHT
-        if player.left < 100:
-            player.left = 100
-        if player.right > 860:
-            player.right = 860
-
+def logic_for_fastfootwork(player, state):
+    radius = state['fastfootwork_radius']
+    min_x = 100 + radius
+    max_x = 860 - radius
+    min_y = 406 + radius
+    max_y = state['HEIGHT'] - radius
+    x, y = state['fastfootwork_circle']
+    dx = player.x - x
+    dy = player.y - y
+    dist = (dx**2 + dy**2) ** 0.5
+    if dist < radius + 40:
+        state['fastfootwork_score'] += 1
+        state['points'] += 2
+        state['fastfootwork_circle'] = (random.randint(min_x, max_x), random.randint(min_y, max_y))
 

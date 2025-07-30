@@ -1,15 +1,14 @@
-# Write your code here :-)
 import pgzrun
-# AI Player Basketball Game in Pygame Zero with Ball Stealing and Smarter AI
-import pygame
 import random
+import sys
+import subprocess
 from pgzero.builtins import Actor, Rect, keyboard
 
 WIDTH = 960
 HEIGHT = 600
 
 # Players
-player1 = Actor("player_copy", (300, 500))
+player1 = Actor("player", (300, 500))
 ai_player = Actor("player_red", (600, 500))  # Changed to a different color sprite and closer position
 
 # Ball setup
@@ -40,6 +39,8 @@ prediction_timer = 0
 
 # Game State
 game_state = "home"
+
+homebutton = Rect((40, 40), (140, 50))  # Add this near the top with other buttons
 
 def startspeedshot():
     clock.schedule_interval(decrease_timer, 1.0)
@@ -81,22 +82,17 @@ def draw():
     #screen.draw.filled_rect(righthoopbackboard, (0,0,0))
 
     # Draw scores and timer
-    screen.draw.text(f"P1 Score: {score_p1}", midtop=(200, 30), fontsize=30, color="black")
-    screen.draw.text(f"AI Score: {score_p2}", midtop=(760, 30), fontsize=30, color="black")
+    screen.draw.text(f"P1 Score: {score_p1}", midtop=(200, 10), fontsize=30, color="black")
+    screen.draw.text(f"AI Score: {score_p2}", midtop=(760, 10), fontsize=30, color="black")
     screen.draw.text(f"Timer: {timer}", center=(WIDTH//2, 40), fontsize=40, color="black")
 
     # Draw prediction bar if timer active
 
     if prediction_timer > 0:
-
         bar_width = 300
-
         bar_height = 20
-
         bar_x = WIDTH // 2 - bar_width // 2
-
         bar_y = 100
-
         fill_width = int(bar_width * prediction_chance)
         screen.draw.text("Shot Accuracy", center=(WIDTH // 2, bar_y - 25), fontsize=30, color="black")
         screen.draw.filled_rect(Rect((bar_x, bar_y), (bar_width, bar_height)), "gray")
@@ -104,7 +100,17 @@ def draw():
         screen.draw.rect(Rect((bar_x, bar_y), (bar_width, bar_height)), "black")
 
     if timer == 0:
+        if score_p1>score_p2:
+            screen.draw.text("Player Wins!", center=(WIDTH//2, HEIGHT//2-40), fontsize=60, color="green")
+        elif score_p1==score_p2:
+            screen.draw.text("Draw!", center=(WIDTH//2, HEIGHT//2-40), fontsize=60, color="orange")
+        else:
+            screen.draw.text("AI Wins!", center=(WIDTH//2, HEIGHT//2-40), fontsize=60, color="red")
         screen.draw.text("Game Over!", center=(WIDTH//2, HEIGHT//2), fontsize=60, color="red")
+
+    # Draw Home button
+    screen.draw.filled_rect(homebutton, "#baf3f7")
+    screen.draw.text("Home", center=homebutton.center, color="black", fontsize=28)
 
 def update():
     global ballx, bally, score_p1, score_p2, ball_owner, ball_in_motion, timer_on, prediction_timer
@@ -245,7 +251,7 @@ def update():
 
 def on_key_down(key):
     global ball_in_motion, ballx, bally, ball_owner, prediction_chance, prediction_color, prediction_timer
-    if key == keys.RETURN and not ball_in_motion and ball_owner == 'player1':
+    if key == keys.SPACE and not ball_in_motion and ball_owner == 'player1':
         ballx = random.uniform(6, 9)
         bally = random.uniform(-10, -13)
         ball_in_motion = True
@@ -253,7 +259,7 @@ def on_key_down(key):
         distance_to_hoop = ((player1.x - right_hoop.centerx)**2 + (player1.y - right_hoop.centery)**2) ** 0.5
         prediction_chance = max(0, min(1, 1 - (distance_to_hoop / 600)))
         if prediction_chance > 0.75:
-            prediction_color = "green" 
+            prediction_color = "green"
         elif prediction_chance > 0.4:
             prediction_color = "yellow"
         else:
@@ -267,4 +273,9 @@ def shoot_ai():
         bally = random.uniform(-10, -13)
         ball_in_motion = True
 
-pgzrun.go()
+def on_mouse_down(pos):
+    if homebutton.collidepoint(pos):
+        # Relaunch Main.py and close this window
+        subprocess.Popen(["pgzrun", "Main.py"])
+        sys.exit()
+    # ...add any other mouse handling here if needed...
