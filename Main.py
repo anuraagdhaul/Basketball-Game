@@ -6,6 +6,8 @@ import Games
 import subprocess
 import sys
 from SpeedShot import *
+from FastFootwork import *
+from Tutorial import *
 
 WIDTH = 960
 HEIGHT = 600
@@ -37,6 +39,10 @@ def challengeaction():
  
 def start_game():
     subprocess.Popen(["pgzrun", "Games.py"])
+
+def start_speedshot():
+    subprocess.Popen(["pgzrun", "SpeedShot.py"])
+
 
 
 challengebutton = Rect((380, 250), (200, 60))
@@ -120,12 +126,8 @@ def draw():
     if counter == "Speed Shot":
         speedshotdraw(screen)
 
-    #if counter == "Fast Footwork":
-      #  player.draw()
-       # ball.draw()
-       # screen.draw.filled_rect(rigthhoop, (0, 0, 0))
-        #screen.draw.text("Score: " + str)
-
+    if counter == "Fast Footwork":
+        fastfootworkdraw(screen)
 
         # Draw prediction bar if timer active
         if prediction_timer > 0:
@@ -141,10 +143,10 @@ def draw():
 
     if counter == "Home":
         counter = False
-
     
+    if counter == "Tutorial":
+        print_tutorial(screen, images)
 
-   
 # for all collisions
 def on_mouse_down(pos):
     global counter, button_pressed, timer_on, games_submenu
@@ -155,6 +157,8 @@ def on_mouse_down(pos):
     if speedshotbutton.collidepoint(pos) and counter == True:
         counter = "Speed Shot"
         timer_on = True
+        start_speedshot()
+        sys.exit()
     if gamesbutton.collidepoint(pos):
         counter = "Games"
         start_game()
@@ -163,7 +167,8 @@ def on_mouse_down(pos):
         counter = "Home"
     if fastfootworkbutton.collidepoint(pos):
         counter = "Fast Footwork"
-
+    if tutorialbutton.collidepoint(pos):
+        counter = "Tutorial"
 
 def on_key_down(key):
     global ballcounter, prediction_chance, prediction_color, prediction_timer

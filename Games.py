@@ -253,7 +253,7 @@ def on_key_down(key):
         distance_to_hoop = ((player1.x - right_hoop.centerx)**2 + (player1.y - right_hoop.centery)**2) ** 0.5
         prediction_chance = max(0, min(1, 1 - (distance_to_hoop / 600)))
         if prediction_chance > 0.75:
-            prediction_color = "green"
+            prediction_color = "green" 
         elif prediction_chance > 0.4:
             prediction_color = "yellow"
         else:
