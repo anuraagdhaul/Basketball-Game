@@ -3,6 +3,7 @@ import random
 import pgzrun
 import subprocess
 import sys
+from datetime import date
 from Tutorial import print_tutorial
 
 WIDTH = 960
@@ -42,7 +43,7 @@ prediction_color = "gray"
 prediction_timer = 0
 
 button_pressed = False
-timer = 90
+timer = 120
 timer_on = False
 games_submenu = False
 
@@ -65,10 +66,10 @@ def challengeaction():
     counter = True
 
 
-challengebutton = Rect((380, 250), (200, 60))
-gamesbutton = Rect((380, 340), (200, 60))
-rankingbutton = Rect((380, 430), (200, 60))
-pointsbutton = Rect((380, 520), (200, 50))
+challengebutton = Rect((380, 240), (200, 60))
+gamesbutton = Rect((380, 330), (200, 60))
+rankingbutton = Rect((380, 420), (200, 60))
+pointsbutton = Rect((380, 510), (200, 50))
 tutorialbutton = Rect((780, 40), (140, 50))
 homebutton = Rect((40, 40), (140, 50))
 tryaginbutton = Rect((780, 40), (140, 50))
@@ -100,7 +101,7 @@ def start_fastfootwork():
         del draw.fastfootwork_ranked
     global timer, fastfootwork_score, fastfootwork_circle
     reset_game_state()
-    timer = 90
+    timer = 70
     fastfootwork_score = 0
     # Player boundaries: left=100, right=860, top=406, bottom=HEIGHT
     min_x = 100 + fastfootwork_radius
@@ -108,8 +109,9 @@ def start_fastfootwork():
     min_y = 406 + fastfootwork_radius
     max_y = HEIGHT - fastfootwork_radius
     fastfootwork_circle = (random.randint(min_x, max_x), random.randint(min_y, max_y))
-    startspeedshot()  # reuse timer logic
-    startgames()
+    clock.unschedule(decreasetimer)  # Stop any previous timer
+    clock.schedule_interval(decreasetimer, 1.0)
+    #startgames()
 
 def draw_fastfootwork():
     global fastfootwork_circle, fastfootwork_score
@@ -142,7 +144,7 @@ def logicForFastFootwork():
 
 def reset_game_state():
     global timer, speedshotscore, ballcounter, ballx, bally, prediction_chance, prediction_color, prediction_timer, timer_on
-    timer = 90
+    timer = 120
     speedshotscore = 0
     ballcounter = False
     ballx = 0
@@ -183,49 +185,17 @@ def draw():
         return
 
     if counter == "Points Log":
-        screen.draw.text("Points Log", center=(WIDTH//2, 60), color="black", fontsize=48)
+        screen.draw.text("Points Log", center=(WIDTH // 2, 60), color="black", fontsize=48)
         y = 120
         for entry in points_log[-10:][::-1]:  # Show last 10 entries, newest first
-            screen.draw.text(entry, topleft=(100, y), color="black", fontsize=32)
+            screen.draw.text(entry, topleft=(WIDTH // 2 -110, y), color="black", fontsize=32)
             y += 40
         # Back button
         screen.draw.filled_rect(homebutton, "#baf3f7")
         screen.draw.text("Home", center=homebutton.center, color="black", fontsize=28)
         return
     
-    if counter == "Games":
-        screen.clear()
-        screen.fill((249, 246, 232))
-        screen.blit("court2", (0, 180))
 
-        # Draw players and ball
-        player.draw()
-        ai_player.draw()
-        ball.draw()
-
-       
-
-        # Draw scores and timer
-        screen.draw.text(f"P1 Score: {score_p1}", midtop=(200, 10), fontsize=30, color="black")
-        screen.draw.text(f"AI Score: {score_p2}", midtop=(760, 10), fontsize=30, color="black")
-        screen.draw.text(f"Timer: {timer}", center=(WIDTH//2, 40), fontsize=40, color="black")
-
-        # Draw prediction bar if timer active
-
-        if prediction_timer > 0:
-            bar_width = 300
-            bar_height = 20
-            bar_x = WIDTH // 2 - bar_width // 2
-            bar_y = 100
-            fill_width = int(bar_width * prediction_chance)
-            screen.draw.text("Shot Accuracy", center=(WIDTH // 2, bar_y - 25), fontsize=30, color="black")
-            screen.draw.filled_rect(Rect((bar_x, bar_y), (bar_width, bar_height)), "gray")
-            screen.draw.filled_rect(Rect((bar_x, bar_y), (fill_width, bar_height)), prediction_color)
-            screen.draw.rect(Rect((bar_x, bar_y), (bar_width, bar_height)), "black")
-
-        # Draw Home button
-        screen.draw.filled_rect(homebutton, "#baf3f7")
-        screen.draw.text("Home", center=homebutton.center, color="black", fontsize=28)
 
     if counter == "Ranking":
         screen.clear()
@@ -255,8 +225,8 @@ def draw():
     if counter == False:
         # -------- Header ----------
 
-        screen.draw.text("Welcome to the Basketball Game!", center=(WIDTH // 2, 130), color="black", fontsize=40,)
-
+        screen.draw.text("Welcome to Hoop Mania!", center=(WIDTH // 2, 130), color="black", fontsize=40,)
+        screen.draw.text(str(date.today()), center = (90, 65), color = "black", fontsize = 33)
         screen.draw.text("Continue your journey:", center=(WIDTH // 2, 170), color="black", fontsize=30)
 
         # Challenge button
@@ -307,11 +277,26 @@ def draw():
         screen.draw.text("Choose a challenge and try to earn some points!", center=(WIDTH // 2, 150), color="black", fontsize=40)
 
     if counter == "Games":
+        screen.clear()
+        screen.fill((249, 246, 232))
+        screen.blit("court2", (0, 180))
+
+        # Draw players and ball
+        player.draw()
+        ai_player.draw()
+        ball.draw()
+
+        # Draw scores and timer
+        screen.draw.text(f"P1 Score: {score_p1}", midtop=(200, 10), fontsize=30, color="black")
+        screen.draw.text(f"AI Score: {score_p2}", midtop=(760, 10), fontsize=30, color="black")
+        screen.draw.text(f"Timer: {timer}", center=(WIDTH//2, 60), fontsize=40, color="black")
+        screen.draw.filled_rect(homebutton, "#baf3f7")
+        screen.draw.text("Home", center=homebutton.center, color="black", fontsize=28)
         if prediction_timer > 0:
             bar_width = 300
             bar_height = 20
             bar_x = WIDTH // 2 - bar_width // 2
-            bar_y = 100
+            bar_y = 160
             fill_width = int(bar_width * prediction_chance)
             screen.draw.text("Shot Accuracy", center=(WIDTH // 2, bar_y - 25), fontsize=30, color="black")
             screen.draw.filled_rect(Rect((bar_x, bar_y), (bar_width, bar_height)), "gray")
@@ -377,9 +362,9 @@ def draw():
             bar_width = 300
             bar_height = 20
             bar_x = WIDTH // 2 - bar_width // 2
-            bar_y = 100
+            bar_y = 200
             fill_width = int(bar_width * prediction_chance)
-            screen.draw.text("Shot Accuracy", center=(WIDTH // 2, bar_y - 25), fontsize=30, color="black")
+            screen.draw.text("Shot Accuracy", center=(WIDTH // 2, bar_y - 30), fontsize=30, color="black")
             screen.draw.filled_rect(Rect((bar_x, bar_y), (bar_width, bar_height)), "gray")
             screen.draw.filled_rect(Rect((bar_x, bar_y), (fill_width, bar_height)), prediction_color)
             screen.draw.rect(Rect((bar_x, bar_y), (bar_width, bar_height)), "black")
@@ -510,6 +495,16 @@ def on_key_down(key):
         ballx = random.uniform(6, 9)
         bally = random.uniform(-10, -13)
         ball_in_motion = True
+        # Predict shot success based on simple angle
+        distance_to_hoop = ((player.x - right_hoop.centerx)**2 + (player.y - right_hoop.centery)**2) ** 0.5
+        prediction_chance = max(0, min(1, 1 - (distance_to_hoop / 600)))
+        if prediction_chance > 0.75:
+            prediction_color = "green"
+        elif prediction_chance > 0.4:
+            prediction_color = "yellow"
+        else:
+            prediction_color = "red"
+        prediction_timer = 60
     if key == keys.SPACE and ballcounter == False:
         ballx = random.uniform(6, 9)
         bally = random.uniform(-10, -13)
@@ -537,12 +532,16 @@ def decreasetimer():
         timer -= 1
 
 def startspeedshot():
+    global timer
+    timer = 90 
     if hasattr(draw, "speed_shot_ranked"):
         del draw.speed_shot_ranked
     clock.unschedule(decreasetimer)  # Stop any previous timer
     clock.schedule_interval(decreasetimer, 1.0)
 
 def startgames():
+    global timer
+    timer = 120
     if hasattr(draw, "games_ranked"):
         del draw.games_ranked
     clock.unschedule(decreasetimer)  # Stop any previous timer
@@ -553,8 +552,8 @@ def logicForSpeedShot():
     player.draw()
     ball.draw()
     screen.draw.filled_rect(righthoop, (0, 0, 0))
-    screen.draw.text("Score: " + str(speedshotscore), center=(WIDTH // 2, 130), color="black", fontsize=40)
-    screen.draw.text("Timer: " + str(timer), center = (WIDTH // 2, 170), color="black", fontsize=40)
+    screen.draw.text("Score: " + str(speedshotscore), center=(WIDTH // 2, 60), color="black", fontsize=40)
+    screen.draw.text("Timer: " + str(timer), center = (WIDTH // 2, 100), color="black", fontsize=40)
     # Home button
     screen.draw.filled_rect(homebutton, "#baf3f7")
     screen.draw.text("Home", center=homebutton.center, color="black", fontsize = 28) 
@@ -593,16 +592,7 @@ def update():
         if ballcounter == False:
             ball.x = player.x - 6
             ball.y = player.y
-        if ballcounter == True:
-            ball.x += ballx
-            ball.y += bally
-            bally += gravity
-            if ball.colliderect(righthoop):
-                score_p1 += 1
-                resetball()
-            if ball.y > HEIGHT or ball.x > WIDTH:
-                resetball()
-
+        
         distance = ai_player.distance_to(player)
         # AI behavior
         if not ball_in_motion:
@@ -692,7 +682,7 @@ def update():
                 ball.x = ai_player.x - 6
                 ball.y = ai_player.y
         else:
-            ball.x += ballx
+            ball.x += ballx 
             ball.y += bally
             bally += gravity
 
